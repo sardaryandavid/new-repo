@@ -44,12 +44,18 @@ try:
             signal = dec2bin(value)
             GPIO.output (dac, signal)
             time.sleep(0.001)
-            voltage = value /255 * maxVoltage
-
+            
             compVal = adc ()
 
             if (compVal == 0):
                 value -= 2 ** (7 - n)
+
+        voltage = value / 256 * maxVoltage
+
+        light = voltage * 8 // 256
+
+        GPIO.output(leds[:light], 1)
+        GPIO.output(leds[light:], 0)
 
         print("value: ", value, "signal:", signal,"The voltage is ", voltage)
 
@@ -57,5 +63,4 @@ try:
 
 finally:
     GPIO.output(dac,GPIO.LOW)
-    GPIO.output(leds, GPIO.LOW)
     GPIO.cleanup()
