@@ -51,15 +51,15 @@ try:
                 value -= 2 ** (7 - n)
 
         voltage = value / 256 * maxVoltage
-
-        light = voltage * 8 // 256
-
-        GPIO.output(leds[:light], 1)
-        GPIO.output(leds[light:], 0)
-
+        
         print("value: ", value, "signal:", signal,"The voltage is ", voltage)
+        
+        i = voltage * 8 // 256
 
-        GPIO.output (leds, GPIO.input(dac))
+        for j in range (i):
+            GPIO.output(leds[j], 1)
+
+        GPIO.output(leds[i:], 0)
 
 finally:
     GPIO.output(dac,GPIO.LOW)
