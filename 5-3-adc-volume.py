@@ -9,9 +9,28 @@ def num2dac (val):
     GPIO.output (dac, signal)
     return signal 
 
+def bin2dec(value):
+    dec = 0
+    deg = 0
+
+    for i in range(7, -1, -1):       
+        dec += (2*value[i])**deg
+        deg += 1
+
+    return dec
+
 def adc (): 
-    compValue = GPIO.input (comp)
-    return compValue
+    bin = dec2bin(0)
+    for i in range(7):
+        bin[i] = 1
+        GPIO.output(dac, bin)
+        time.sleep(0.001)
+        if GPIO.input(comp) == 0:
+            bin[i] = 0
+
+    dec = bin2dec(bin)
+
+    return dec
 
 maxVoltage = 3.3
 
@@ -28,38 +47,25 @@ GPIO.setup(dac, GPIO.OUT)
 GPIO.setup(troyka, GPIO.OUT, initial = GPIO.HIGH)
 GPIO.setup(comp, GPIO.IN)
 
-signalList = [1, 0, 0 , 0, 0, 0, 0, 0]
-
 leds = [21, 20, 16, 12, 7, 8, 25, 24]
+
 GPIO.setup(leds, GPIO.OUT)
+
+
+def ledsFunc(voltage):
+    GPIO.output(leds, 0)
+    i = int(((voltage + 0.1) / 3.3) * 8)
+    for j in range(i):
+        GPIO.output(leds[j], 1)
 
 try:
     while True:
-        
-        value = 0
-        
-        for n in range (8): 
-            value += int(2 ** (7 - n))
+        dec = adc()
+        voltage = (3.3 * dec) / 256
+       
+        print("The voltage is ", voltage)
 
-            signal = dec2bin(value)
-            GPIO.output (dac, signal)
-            time.sleep(0.001)
-            
-            compVal = adc ()
-
-            if (compVal == 0):
-                value -= 2 ** (7 - n)
-
-        voltage = value / 256 * maxVoltage
-        
-        print("value: ", value, "signal:", signal,"The voltage is ", voltage)
-        
-        i = voltage * 8 // 256
-
-        for j in range (i):
-            GPIO.output(leds[j], 1)
-
-        GPIO.output(leds[i:], 0)
+        ledsFunc(voltage)
 
 finally:
     GPIO.output(dac,GPIO.LOW)
